@@ -1,0 +1,64 @@
+/* variable.css */
+/* styles/variable.css */
+/* :root {
+    --primary-color: #3498db;
+    --secondary-color: #2ecc71;
+    --background-color: #f4f4f4;
+    --text-color: #333333;
+  } */
+  
+ 
+  
+/* var.css */
+:root {
+  /* Colors */
+  --color-violet-950: #1e1b45; /* Background start */
+  --color-indigo-900: #252158; /* Gradient middle */
+  --color-slate-900: #2a273b; /* Gradient end */
+  --color-violet-500: #7c3aed;
+  --color-indigo-500: #6366f1;
+  --color-blue-500: #3b82f6;
+  --color-teal-500: #14b8a6;
+
+  /* Transparent Colors */
+  --color-white-opacity-10: rgba(255, 255, 255, 0.1);
+  --color-white-opacity-3: rgba(255, 255, 255, 0.03);
+  --color-purple-500-opacity-30: rgba(124, 58, 237, 0.3);
+  --color-blue-500-opacity-30: rgba(59, 130, 246, 0.3);
+  --color-teal-500-opacity-20: rgba(20, 184, 166, 0.2);
+
+  /* Gradients */
+  --gradient-violet-indigo-slate: linear-gradient(to br, var(--color-violet-950), var(--color-indigo-900), var(--color-slate-900));
+  --gradient-violet-indigo: linear-gradient(to r, var(--color-violet-500), var(--color-indigo-500));
+  --gradient-violet-indigo-purple: linear-gradient(to r, var(--color-violet-500), var(--color-indigo-500), var(--color-purple-500));
+
+  /* Typography */
+  --font-body: 'Inter', sans-serif;
+  --text-color-primary: #ffffff; /* For light text */
+  --text-color-secondary: #c7d2fe; /* Subtle text */
+
+  /* Shadows & Blurs */
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --blur-sm: blur(3px);
+  --blur-xl: blur(12px);
+  --blur-3xl: blur(30px);
+
+  /* Animations */
+  --duration-fast: 300ms;
+  --duration-slow: 500ms;
+  --spin-duration: 1.5s;
+}
+
+  
+  
+  /* Example Usage */
+  .button {
+    background-color: var(--primary-color);
+    color: var(--text-color);
+  }
+  
+  .button:hover {
+    background-color: var(--primary-light);
+  }
+  
