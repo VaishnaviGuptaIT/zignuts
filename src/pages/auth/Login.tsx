@@ -1,11 +1,12 @@
-// Login.tsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Lock, Mail, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff } from "lucide-react";
 import { User, getUsers } from "../../utils/storage";
 import { decryptPassword } from "../../utils/encryption";
 import { useDispatch } from "react-redux";
 import { setLogin } from "../../store/slices/authSlice";
+import { useForm } from "react-hook-form";
+import { toast } from "react-hot-toast";
 
 interface LoginInputs {
   email: string;
@@ -13,66 +14,63 @@ interface LoginInputs {
 }
 
 export const Login: React.FC = () => {
-  const [formData, setFormData] = useState<LoginInputs>({
-    email: "",
-    password: "",
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setValue,
+    getValues,
+  } = useForm<LoginInputs>({
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      password: "",
+    },
   });
 
-  const [error, setError] = useState<string>("");
-
   const [showPassword, setShowPassword] = useState(false);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
   const navigate = useNavigate();
-
   const dispatch = useDispatch();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === ' ') {
+      e.preventDefault();
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>, field: keyof LoginInputs) => {
     e.preventDefault();
-    setError("");
-    setIsSubmitting(true);
+    const pastedText = e.clipboardData.getData('text').replace(/\s/g, '');
+    setValue(field, getValues(field) + pastedText);
+  };
 
+  const onSubmit = async (formData: LoginInputs) => {
     try {
       const users = getUsers();
       const user = users.find((u: User) => u.email === formData.email);
 
       if (!user) {
-        setError("Email not found");
+        toast.error("Email not found");
         return;
       }
 
       if (decryptPassword(user.password) !== formData.password) {
-        setError("Incorrect password");
+        toast.error("Incorrect password");
         return;
       }
 
-      // Store user in localStorage
       localStorage.setItem("currentUser", JSON.stringify(user));
-
       dispatch(setLogin(true));
-
-      // Navigate to protected route
+      toast.success("Successfully logged in!");
       navigate("/dashboard");
     } catch (err) {
-      setError("An error occurred during login");
+      toast.error("An error occurred during login");
       console.error(err);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="min-h-screen relative bg-gradient-to-br from-violet-950 via-indigo-900 to-slate-900">
-      {/* Background elements remain the same */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute w-[500px] h-[500px] top-[-250px] left-[-250px] bg-purple-500/30 rounded-full blur-3xl animate-pulse" />
         <div className="absolute w-[500px] h-[500px] bottom-[-250px] right-[-250px] bg-blue-500/30 rounded-full blur-3xl animate-pulse" />
@@ -85,7 +83,7 @@ export const Login: React.FC = () => {
             <div className="relative p-8">
               {/* Brand Section */}
               <div className="text-center mb-8">
-                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-500 flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-r from-violet-500 to-indigo-500 flex items-center justify-center transform transition-all duration-500 hover:rotate-[360deg] hover:scale-110">
                   <Lock className="h-10 w-10 text-white" />
                 </div>
                 <h2 className="text-4xl font-bold bg-gradient-to-r from-violet-300 via-indigo-300 to-teal-300 bg-clip-text text-transparent mb-2">
@@ -94,28 +92,34 @@ export const Login: React.FC = () => {
                 <p className="text-indigo-200/80">Sign in to your account</p>
               </div>
 
-              {/* Error Alert */}
-              {error && (
-                <div className="mb-6 bg-red-500/10 backdrop-blur-sm p-4 rounded-xl flex items-center gap-3 text-red-200 border border-red-500/20 animate-shake">
-                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 {/* Email Input */}
                 <div className="transform transition-all duration-300 hover:translate-x-1">
                   <div className="relative group">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-indigo-300 group-hover:text-indigo-200" />
                     <input
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
+                      {...register("email", {
+                        required: "Email is required",
+                        pattern: {
+                          value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                          message: "Please enter a valid email address",
+                        },
+                        validate: {
+                          noSpaces: (value) => !/\s/.test(value) || "Email cannot contain spaces"
+                        }
+                      })}
+                      onKeyDown={handleKeyDown}
+                      onPaste={(e) => handlePaste(e, "email")}
                       className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/[0.1] rounded-xl focus:ring-2 focus:ring-violet-500/50 focus:border-transparent placeholder-indigo-200/50 text-white"
                       placeholder="Email address"
-                      required
                     />
+                  </div>
+                  <div className="h-6 flex items-center">
+                    {errors.email && (
+                      <p className="mt-1 text-red-400 text-sm">
+                        {errors.email.message}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -124,13 +128,34 @@ export const Login: React.FC = () => {
                   <div className="relative group">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-indigo-300 group-hover:text-indigo-200" />
                     <input
-                      name="password"
+                      {...register("password", {
+                        required: "Password is required",
+                        minLength: {
+                          value: 8,
+                          message: "Password must be at least 8 characters"
+                        },
+                        maxLength: {
+                          value: 32,
+                          message: "Password must not exceed 32 characters"
+                        },
+                        validate: {
+                          noSpaces: (value) => !/\s/.test(value) || "Password cannot contain spaces",
+                          lowercase: (value) => /[a-z]/.test(value) || "Password must contain at least one lowercase letter",
+                          uppercase: (value) => /[A-Z]/.test(value) || "Password must contain at least one uppercase letter",
+                          digit: (value) => /\d/.test(value) || "Password must contain at least one number",
+                          specialChar: (value) => 
+                            /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(value) || 
+                            "Password must contain at least one special character",
+                          format: (value) =>
+                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])[A-Za-z\d!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]{8,32}$/.test(value) ||
+                            "Password must meet all requirements"
+                        }
+                      })}
                       type={showPassword ? "text" : "password"}
-                      value={formData.password}
-                      onChange={handleChange}
+                      onKeyDown={handleKeyDown}
+                      onPaste={(e) => handlePaste(e, "password")}
                       className="w-full pl-12 pr-12 py-4 bg-white/[0.03] border border-white/[0.1] rounded-xl focus:ring-2 focus:ring-violet-500/50 focus:border-transparent placeholder-indigo-200/50 text-white"
                       placeholder="Password"
-                      required
                     />
                     <button
                       type="button"
@@ -144,9 +169,15 @@ export const Login: React.FC = () => {
                       )}
                     </button>
                   </div>
+                  <div className="h-6 flex items-center">
+                    {errors.password && (
+                      <p className="mt-1 text-red-400 text-sm">
+                        {errors.password.message}
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -161,7 +192,7 @@ export const Login: React.FC = () => {
                     "Sign in"
                   )}
                 </button>
-                {/* Register Link */}
+
                 <div className="text-center">
                   <p className="text-indigo-200/80">
                     Don't have an account?{" "}

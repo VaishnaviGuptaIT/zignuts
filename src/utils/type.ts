@@ -8,3 +8,16 @@ export interface Product {
     brand: string;
     rating: number;
   }
+  export interface ProfileFormInputs {
+    firstName: string;
+    lastName: string;
+    email: string;
+    mobile: string;
+  }
+  
+  export interface PasswordFormInputs {
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+  }
+  

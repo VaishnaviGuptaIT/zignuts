@@ -16,7 +16,7 @@ const AppRoutes: React.FC = () => {
 
   return (
     <Routes>
-      {/* Public Routes - No Header */}
+      {/* Public Routes*/}
       <Route
         path="/signup"
         element={
@@ -34,7 +34,7 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Private Routes - With Header */}
+      {/* Private Routes */}
       <Route
         path="/home"
         element={
@@ -68,7 +68,6 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Root route - redirect to home if authenticated, otherwise to login */}
       <Route
         path="/"
         element={
@@ -80,7 +79,7 @@ const AppRoutes: React.FC = () => {
         }
       />
 
-      {/* Catch undefined routes */}
+    
       <Route
         path="*"
         element={
